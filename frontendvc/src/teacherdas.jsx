@@ -14,7 +14,7 @@ const TeacherDashboard = () => {
     e.preventDefault();
 
     try {
-      const response = await fetch("http://localhost:5000/create-class", {
+      const response = await fetch("https://vcp-rs8t.onrender.com/create-class", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
