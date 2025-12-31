@@ -11,7 +11,7 @@ const server = http.createServer(app);
 app.use(cors());
 app.use(express.json());
 
-const url = "mongodb://127.0.0.1:27017";
+const url = "mongodb+srv://as:Aman9264@cluster0.wjfb6ep.mongodb.net/?appName=Cluster0";
 const SECRET_KEY = "123";
 
 const client = new MongoClient(url);
@@ -25,7 +25,6 @@ async function connectDB() {
   }
 }
 connectDB();
-
 
 const io = new Server(server, {
   cors: {
