@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
+import { useNavigate } from "react-router-dom";
 
 const socket = io("https://vcp-rs8t.onrender.com");
 
 function TeacherQueryPage() {
   const [formData, setFormData] = useState({ query: "" });
   const [messages, setMessages] = useState([]);
+  const navigate = useNavigate();
 
   // LISTEN to messages (runs once when page loads)
   useEffect(() => {
@@ -40,9 +42,18 @@ function TeacherQueryPage() {
     setFormData({ query: "" });
   };
 
+  const handleLogout = () => {
+    socket.disconnect();
+    navigate("/login");
+  };
+
   return (
     <div style={pageStyle}>
       <div style={cardStyle}>
+        <button onClick={handleLogout} style={logoutButtonStyle}>
+          Logout
+        </button>
+
         <h2 style={headingStyle}>Post an Announcement</h2>
 
         {/* MESSAGE DISPLAY */}
@@ -126,6 +137,17 @@ const buttonStyle = {
   border: "none",
   borderRadius: "8px",
   fontSize: "16px",
+  cursor: "pointer",
+};
+
+const logoutButtonStyle = {
+  marginBottom: "10px",
+  padding: "8px 14px",
+  backgroundColor: "#dc2626",
+  color: "#ffffff",
+  border: "none",
+  borderRadius: "6px",
+  fontSize: "14px",
   cursor: "pointer",
 };
 

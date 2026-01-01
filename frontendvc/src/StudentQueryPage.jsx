@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
+import { useNavigate } from "react-router-dom";
+
 const socket = io("https://vcp-rs8t.onrender.com");
+
 const pageStyle = {
   minHeight: "100vh",
   display: "flex",
@@ -15,6 +18,20 @@ const cardStyle = {
   borderRadius: "12px",
   width: "420px",
   boxShadow: "0 10px 25px rgba(0,0,0,0.25)",
+  position: "relative",
+};
+
+const logoutButtonStyle = {
+  position: "absolute",
+  top: "15px",
+  right: "15px",
+  padding: "6px 12px",
+  backgroundColor: "#ef4444",
+  color: "#ffffff",
+  border: "none",
+  borderRadius: "6px",
+  cursor: "pointer",
+  fontSize: "14px",
 };
 
 const messageBox = {
@@ -48,9 +65,11 @@ const buttonStyle = {
   fontSize: "16px",
   cursor: "pointer",
 };
+
 function StudentQueryPage() {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState([]);
+  const navigate = useNavigate();
 
   useEffect(() => {
     socket.on("receiveMessage", (data) => {
@@ -73,9 +92,18 @@ function StudentQueryPage() {
     setQuery("");
   };
 
+  const handleLogout = () => {
+    socket.disconnect(); // optional but recommended
+    navigate("/login");
+  };
+
   return (
     <div style={pageStyle}>
       <div style={cardStyle}>
+        <button style={logoutButtonStyle} onClick={handleLogout}>
+          Logout
+        </button>
+
         <h2>Student Queries</h2>
 
         <div style={messageBox}>
@@ -100,7 +128,5 @@ function StudentQueryPage() {
     </div>
   );
 }
-
-/* same styles as teacher */
 
 export default StudentQueryPage;
