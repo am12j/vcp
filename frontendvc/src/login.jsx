@@ -33,11 +33,15 @@ function Login() {
       if (role === "student") {
         localStorage.setItem("stoken", data.token1);
         localStorage.setItem("user", data.username1);
+
+        setForm({ username: "", password: "" }); // <-- clear inputs
         navigate("/studentdas", { replace: true });
       } 
       else if (role === "teacher") {
         localStorage.setItem("ttoken", data.token1);
         localStorage.setItem("user", data.username1);
+
+        setForm({ username: "", password: "" }); // <-- clear inputs
         navigate("/teacherdas", { replace: true });
       } 
       else {
