@@ -12,7 +12,7 @@ function App() {
   return (
     <BrowserRouter>
       <div className="main-wrapper">
-        <h1 className="heading-main">Welcome to Our App</h1>
+        <h1 className="heading-main">Welcome </h1>
         <p className="description-text">
           Please login or signup to access the full features of the application.
         </p>
