@@ -1,20 +1,20 @@
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
+import { startTeacherCall, endTeacherCall } from "./teachercall"; // import both functions
 
 const socket = io("https://vcp-rs8t.onrender.com");
 
 function TeacherQueryPage() {
   const [formData, setFormData] = useState({ query: "" });
   const [messages, setMessages] = useState([]);
+  const [callActive, setCallActive] = useState(false); // track call status
   const navigate = useNavigate();
 
-  // LISTEN to messages (runs once when page loads)
   useEffect(() => {
     socket.on("receiveMessage", (data) => {
       setMessages((prev) => [...prev, data]);
     });
-
     return () => socket.off("receiveMessage");
   }, []);
 
@@ -27,24 +27,25 @@ function TeacherQueryPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    const messageData = {
-      sender: "Teacher",
-      text: formData.query,
-    };
-
-    // send to socket
+    const messageData = { sender: "Teacher", text: formData.query };
     socket.emit("sendMessage", messageData);
-
-    // show own message immediately
     setMessages((prev) => [...prev, messageData]);
-
     setFormData({ query: "" });
   };
 
   const handleLogout = () => {
     socket.disconnect();
     navigate("/login");
+  };
+
+  const handleStartCall = () => {
+    startTeacherCall(); // Start the teacher's call
+    setCallActive(true); // Set call as active
+  };
+
+  const handleEndCall = () => {
+    endTeacherCall(); // End the teacher's call
+    setCallActive(false); // Set call as inactive
   };
 
   return (
@@ -55,6 +56,17 @@ function TeacherQueryPage() {
         </button>
 
         <h2 style={headingStyle}>Post an Announcement</h2>
+
+        {/* Buttons for video call control */}
+        {!callActive ? (
+          <button onClick={handleStartCall} style={videoButtonStyle}>
+            Start Video Call
+          </button>
+        ) : (
+          <button onClick={handleEndCall} style={videoButtonStyle}>
+            End Call
+          </button>
+        )}
 
         {/* MESSAGE DISPLAY */}
         <div style={messageBox}>
@@ -70,23 +82,18 @@ function TeacherQueryPage() {
             name="query"
             value={formData.query}
             onChange={handleChange}
-            placeholder="Type your announcement or message..."
+            placeholder="Type your announcement..."
             required
             style={textareaStyle}
           />
-
-          <input
-            type="submit"
-            value="Post Message"
-            style={buttonStyle}
-          />
+          <input type="submit" value="Post Message" style={buttonStyle} />
         </form>
       </div>
     </div>
   );
 }
 
-/* ---------- CSS styles ---------- */
+/* ---------- STYLES ---------- */
 
 const pageStyle = {
   minHeight: "100vh",
@@ -104,11 +111,7 @@ const cardStyle = {
   boxShadow: "0 10px 25px rgba(0,0,0,0.25)",
 };
 
-const headingStyle = {
-  marginBottom: "15px",
-  color: "#1f2933",
-  textAlign: "center",
-};
+const headingStyle = { marginBottom: "15px", color: "#1f2933", textAlign: "center" };
 
 const messageBox = {
   height: "150px",
@@ -138,6 +141,18 @@ const buttonStyle = {
   borderRadius: "8px",
   fontSize: "16px",
   cursor: "pointer",
+};
+
+const videoButtonStyle = {
+  width: "100%",
+  padding: "12px",
+  backgroundColor: "#2563eb",
+  color: "#ffffff",
+  border: "none",
+  borderRadius: "8px",
+  fontSize: "16px",
+  cursor: "pointer",
+  marginBottom: "15px",
 };
 
 const logoutButtonStyle = {
