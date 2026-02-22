@@ -11,8 +11,8 @@ const server = http.createServer(app);
 app.use(cors());
 app.use(express.json());
 
-const url = "mongodb+srv://as:Aman9264@cluster0.wjfb6ep.mongodb.net/?appName=Cluster0";
 const SECRET_KEY = "123";
+const url = "mongodb+srv://as:Aman9264@cluster0.wjfb6ep.mongodb.net/?appName=Cluster0";
 
 const client = new MongoClient(url);
 
@@ -26,6 +26,8 @@ async function connectDB() {
 }
 connectDB();
 
+/* ---------------- SOCKET.IO ---------------- */
+
 const io = new Server(server, {
   cors: {
     origin: "*",
@@ -36,8 +38,36 @@ const io = new Server(server, {
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
+  /* ---------------- CHAT FEATURE ---------------- */
+
   socket.on("sendMessage", (data) => {
     socket.broadcast.emit("receiveMessage", data);
+  });
+
+  /* ---------------- VIDEO CALL FEATURE ---------------- */
+
+  // Teacher sends offer → broadcast to students
+  socket.on("offer", (data) => {
+    socket.broadcast.emit("incomingOffer", {
+      teacherId: socket.id,
+      offer: data.offer,
+    });
+  });
+
+  // Student sends answer → only teacher receives
+  socket.on("answer", (data) => {
+    io.to(data.target).emit("answer", {
+      studentId: socket.id,
+      answer: data.answer,
+    });
+  });
+
+  // ICE candidates → send to specific peer
+  socket.on("ice-candidate", (data) => {
+    io.to(data.target).emit("ice-candidate", {
+      studentId: socket.id,
+      candidate: data.candidate,
+    });
   });
 
   socket.on("disconnect", () => {
@@ -45,7 +75,7 @@ io.on("connection", (socket) => {
   });
 });
 
-
+/* ---------------- REST APIs ---------------- */
 
 app.post("/login", async (req, res) => {
   const { username, password } = req.body;
@@ -68,9 +98,7 @@ app.post("/login", async (req, res) => {
       token1: token,
       username1: user.username,
     });
-
   } catch (err) {
-    console.error(err);
     res.status(500).json({ message: "Server error" });
   }
 });
@@ -88,7 +116,6 @@ app.post("/signup", async (req, res) => {
     });
 
     res.json({ message: "Signup successful" });
-
   } catch (err) {
     res.status(500).json({ message: "Error signing up" });
   }
@@ -115,10 +142,9 @@ app.post("/verify-class", async (req, res) => {
 
     res.json({
       studentprogress: "successful",
-      token3:token,
+      token3: token,
       status: "successful",
     });
-
   } catch (err) {
     res.status(500).json({ message: "Error verifying class" });
   }
@@ -141,13 +167,13 @@ app.post("/create-class", async (req, res) => {
       teacherprogress: "successful",
       token2: token,
     });
-
   } catch (err) {
     res.status(500).json({ status: "failed" });
   }
 });
 
-/* ---------------- SERVER START ---------------- */
+/* ---------------- START SERVER ---------------- */
+
 server.listen(5000, () => {
   console.log("Server running on port 5000");
 });
