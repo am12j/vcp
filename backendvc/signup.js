@@ -48,7 +48,7 @@ io.on("connection", (socket) => {
 
   // Teacher sends offer → broadcast to students
   socket.on("offer", (data) => {
-    socket.broadcast.emit("incomingOffer", {
+    socket.broadcast.emit("offer", {
       teacherId: socket.id,
       offer: data.offer,
     });
