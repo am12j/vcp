@@ -64,11 +64,12 @@ io.on("connection", (socket) => {
 
   // ICE candidates → send to specific peer
   socket.on("ice-candidate", (data) => {
-    io.to(data.target).emit("ice-candidate", {
-      studentId: socket.id,
-      candidate: data.candidate,
-    });
+  socket.broadcast.emit("ice-candidate", {
+    senderId: socket.id, 
+    candidate: data.candidate,
   });
+});
+
 
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
