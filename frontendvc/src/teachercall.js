@@ -1,43 +1,46 @@
-// teachercall.js
 import { io } from "socket.io-client";
 
 const socket = io("https://vcp-rs8t.onrender.com");
-const peerConnections = {}; 
+
+let peerConnection = null;
 let localStream = null;
+let currentStudentId = null;
 
 export const startTeacherCall = async () => {
   try {
-    localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+    localStream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true,
+    });
 
-    // Show teacher's own video
     if (!document.getElementById("local-video")) {
       const video = document.createElement("video");
+      video.id = "local-video";
       video.srcObject = localStream;
       video.autoplay = true;
       video.muted = true;
       video.style.width = "400px";
-      video.id = "local-video";
       document.body.appendChild(video);
     }
 
-    const pc = new RTCPeerConnection({ 
-      iceServers: [{ urls: "stun:stun.l.google.com:19302" }] 
+    peerConnection = new RTCPeerConnection({
+      iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
     });
 
-    // 1. Add tracks (Talker side)
-    localStream.getTracks().forEach((track) => pc.addTrack(track, localStream));
+    localStream.getTracks().forEach((track) => {
+      peerConnection.addTrack(track, localStream);
+    });
 
-    // 2. Outgoing ICE candidates (Sending your address)
-    pc.onicecandidate = (event) => {
-      if (event.candidate) {
-        console.log("📡 Sending ICE candidate to backend...");
-        socket.emit("ice-candidate", { candidate: event.candidate });
+    peerConnection.onicecandidate = (event) => {
+      if (event.candidate && currentStudentId) {
+        socket.emit("ice-candidate", {
+          target: currentStudentId,
+          candidate: event.candidate,
+        });
       }
     };
 
-    // 3. Incoming Tracks (Listener side - Student's video)
-    pc.ontrack = (event) => {
-      console.log("🎥 Student video track received!");
+    peerConnection.ontrack = (event) => {
       if (!document.getElementById("remote-video")) {
         const remoteVideo = document.createElement("video");
         remoteVideo.id = "remote-video";
@@ -48,60 +51,50 @@ export const startTeacherCall = async () => {
       }
     };
 
-    // 4. Create and Send Offer
-    const offer = await pc.createOffer();
-    await pc.setLocalDescription(offer);
-    
-    peerConnections["currentCall"] = pc; 
+    const offer = await peerConnection.createOffer();
+    await peerConnection.setLocalDescription(offer);
+
     socket.emit("offer", { offer });
 
-    console.log("📞 Offer sent. Waiting for student to accept...");
-
+    console.log("📞 Offer sent...");
   } catch (err) {
-    console.error("❌ Teacher call error:", err);
+    console.error("Teacher error:", err);
   }
 };
 
-/* --- SIGNALING LISTENERS --- */
-
-// Handle the student's answer
 socket.on("answer", async (data) => {
-  const pc = peerConnections["currentCall"];
-  if (pc) {
-    try {
-      await pc.setRemoteDescription(new RTCSessionDescription(data.answer));
-      console.log("✅ WebRTC Handshake Complete: Connection Established!");
-    } catch (e) {
-      console.error("❌ Error setting remote description:", e);
-    }
+  try {
+    currentStudentId = data.studentId;
+
+    await peerConnection.setRemoteDescription(
+      new RTCSessionDescription(data.answer)
+    );
+
+    console.log("✅ Connected to student!");
+  } catch (err) {
+    console.error("Error setting remote description:", err);
   }
 });
 
-// Incoming ICE candidates (Receiving student's address)
 socket.on("ice-candidate", async (data) => {
-  const pc = peerConnections["currentCall"];
-  if (pc && data.candidate) {
-    try {
-      await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
-      console.log("✅ Student's network path added!");
-    } catch (e) {
-      console.error("❌ Error adding ICE candidate:", e);
-    }
+  if (peerConnection && data.senderId === currentStudentId) {
+    await peerConnection.addIceCandidate(
+      new RTCIceCandidate(data.candidate)
+    );
   }
 });
 
 export const endTeacherCall = () => {
   if (localStream) {
-    localStream.getTracks().forEach(track => track.stop());
+    localStream.getTracks().forEach((track) => track.stop());
     localStream = null;
   }
-  
-  if (peerConnections["currentCall"]) {
-    peerConnections["currentCall"].close();
-    delete peerConnections["currentCall"];
+
+  if (peerConnection) {
+    peerConnection.close();
+    peerConnection = null;
   }
 
+  currentStudentId = null;
   document.querySelectorAll("video").forEach((v) => v.remove());
-  socket.emit("end-call", { from: "teacher" });
-  console.log("🛑 Call ended.");
 };
