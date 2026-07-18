@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
-import { useNavigate } from "react-router-dom";
+
 import { startTeacherCall, endTeacherCall } from "./teachercall"; 
 
 const socket = io("https://vcp-rs8t.onrender.com");
@@ -9,7 +9,7 @@ function TeacherQueryPage() {
   const [formData, setFormData] = useState({ query: "" });
   const [messages, setMessages] = useState([]);
   const [callActive, setCallActive] = useState(false); 
-  const navigate = useNavigate();
+
 
   useEffect(() => {
     socket.on("receiveMessage", (data) => {
