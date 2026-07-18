@@ -1,47 +1,10 @@
-import React, { useState } from 'react';
-
-// --- Define styles outside to prevent re-creation on every render ---
-const formContainerStyle = {
-  background: "white",
-  padding: "30px",
-  borderRadius: "12px",
-  boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
-  width: "100%",
-  maxWidth: "400px",
-  margin: "0 auto",
-};
-
-const inputStyle = {
-  width: "100%",
-  padding: "12px",
-  margin: "10px 0",
-  borderRadius: "6px",
-  border: "1px solid #ddd",
-  boxSizing: "border-box", // Critical for keeping padding inside the width
-};
-
-const buttonStyle = {
-  width: "100%",
-  padding: "12px",
-  backgroundColor: "#4a90e2",
-  color: "white",
-  border: "none",
-  borderRadius: "6px",
-  cursor: "pointer",
-  fontWeight: "bold",
-  marginTop: "10px",
-};
-
-const messageStyle = {
-  marginTop: "15px",
-  color: "#333",
-  fontWeight: "500"
-};
+import React, { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
 
 function Signup() {
-  const [form, setForm] = useState({ username: '', email: '', password: '' });
+  const [form, setForm] = useState({ username: "", password: "" });
+  const navigate = useNavigate();
 
-  // handleChange remains inside because it needs setForm
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
@@ -52,61 +15,58 @@ function Signup() {
     try {
       const response = await fetch("https://vcp-rs8t.onrender.com/signup", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify(form)
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
       });
 
-      const t = await response.text(); 
-      document.getElementById("k").innerText = t;
+      const data = await response.json();
 
-    } catch (error) {
-      document.getElementById("k").innerText = "Server error";
-      console.error(error);
+      if (!response.ok) {
+        alert(data.message || "Signup failed");
+        return;
+      }
+
+      alert("Signup successful! Please login.");
+      setForm({ username: "", password: "" });
+      navigate("/login", { replace: true });
+    } catch (err) {
+      console.error("Signup Error:", err);
+      alert("Server is not responding");
     }
   };
 
   return (
-    <div style={formContainerStyle}>
-      <form onSubmit={handleSubmit}>
-        <h2 style={{ color: "#333", marginBottom: "20px" }}>Signup</h2>
-        
-        <input
-          type="text"
-          name="username"
-          placeholder="teacher or student"
-          style={inputStyle}
-          value={form.username}
-          onChange={handleChange}
-          required
-        />
-        
-        <input
-          type="email"
-          name="email"
-          placeholder="Email"
-          style={inputStyle}
-          value={form.email}
-          onChange={handleChange}
-          required
-        />
+    <div className="auth-container">
+      <div className="auth-card">
+        <form onSubmit={handleSubmit}>
+          <h2>Signup</h2>
 
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          autoComplete="new-password"
-          style={inputStyle}
-          value={form.password}
-          onChange={handleChange}
-          required
-        />
+          <input
+            type="text"
+            name="username"
+            placeholder="Username (e.g., student or teacher)"
+            className="input-field"
+            value={form.username}
+            onChange={handleChange}
+            required
+          />
 
-        <input type="submit" style={buttonStyle} value="Create Account" />
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            className="input-field"
+            value={form.password}
+            onChange={handleChange}
+            required
+          />
 
-        <p id="k" style={messageStyle}></p>
-      </form>
+          <button type="submit" className="btn-primary">Signup</button>
+        </form>
+        <p style={{ marginTop: '20px', color: 'var(--text-muted)' }}>
+          Already have an account? <Link to="/login" style={{ color: 'var(--primary)' }}>Login here</Link>
+        </p>
+      </div>
     </div>
   );
 }

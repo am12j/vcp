@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -25,6 +24,10 @@ const StudentDashboard = () => {
 
       const data = await response.json();
 
+      if (!response.ok) {
+        setError(data.message || "Invalid Class ID");
+        return;
+      }
       
       localStorage.setItem("studenttoken", data.token3);
         
@@ -39,75 +42,31 @@ const StudentDashboard = () => {
   };
 
   return (
-    <div style={containerStyle}>
-      <h2 style={headingStyle}>Student Dashboard</h2>
+    <div className="dashboard-container">
+      <div className="dashboard-card">
+        <h2>Student Dashboard</h2>
+        <p style={{ marginBottom: "24px", color: "var(--text-muted)" }}>
+          Join an active virtual classroom session by entering your Class ID.
+        </p>
 
-      <form onSubmit={handleSubmit} style={formStyle}>
-        <input
-          type="text"
-          name="classId"
-          value={formData.classId}
-          onChange={handleChange}
-          placeholder="Enter Class ID"
-          required
-          style={inputStyle}
-        />
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            name="classId"
+            value={formData.classId}
+            onChange={handleChange}
+            placeholder="Enter Class ID (e.g. 123456)"
+            required
+            className="input-field"
+          />
 
-        <input type="submit" value="Join Class" style={buttonStyle} />
-      </form>
+          <button type="submit" className="btn-primary">Join Class</button>
+        </form>
 
-      {error && <p style={errorStyle}>{error}</p>}
+        {error && <p className="error-msg">{error}</p>}
+      </div>
     </div>
   );
-};
-
-/* ---------- CSS styles ---------- */
-
-const containerStyle = {
-  minHeight: "100vh",
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "center",
-  alignItems: "center",
-  backgroundColor: "#f4f6f8",
-};
-
-const headingStyle = {
-  marginBottom: "20px",
-  color: "#333",
-};
-
-const formStyle = {
-  backgroundColor: "#fff",
-  padding: "30px",
-  borderRadius: "8px",
-  boxShadow: "0 4px 10px rgba(0, 0, 0, 0.1)",
-  display: "flex",
-  flexDirection: "column",
-  width: "300px",
-};
-
-const inputStyle = {
-  padding: "10px",
-  marginBottom: "15px",
-  borderRadius: "4px",
-  border: "1px solid #ccc",
-  fontSize: "16px",
-};
-
-const buttonStyle = {
-  padding: "10px",
-  backgroundColor: "#007bff",
-  color: "#fff",
-  border: "none",
-  borderRadius: "4px",
-  cursor: "pointer",
-  fontSize: "16px",
-};
-
-const errorStyle = {
-  marginTop: "15px",
-  color: "red",
 };
 
 export default StudentDashboard;

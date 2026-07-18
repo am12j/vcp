@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { io } from "socket.io-client";
 import { useNavigate } from "react-router-dom";
-import { startStudentCall, endStudentCall } from "./studentcall"; // import end call too
+import { startStudentCall, endStudentCall } from "./studentcall"; 
 
 const socket = io("https://vcp-rs8t.onrender.com");
 
 function StudentQueryPage() {
   const [query, setQuery] = useState("");
   const [messages, setMessages] = useState([]);
-  const [incomingCall, setIncomingCall] = useState(false); // incoming offer
-  const [inCall, setInCall] = useState(false); // call started
+  const [incomingCall, setIncomingCall] = useState(false); 
+  const [inCall, setInCall] = useState(false); 
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -18,7 +18,7 @@ function StudentQueryPage() {
     );
 
     socket.on("offer", () => {
-      setIncomingCall(true); // show Accept and End buttons
+      setIncomingCall(true); 
     });
 
     return () => {
@@ -29,15 +29,11 @@ function StudentQueryPage() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    if (!query.trim()) return;
     const messageData = { sender: "Student", text: query };
     socket.emit("sendMessage", messageData);
     setMessages((prev) => [...prev, messageData]);
     setQuery("");
-  };
-
-  const handleLogout = () => {
-    socket.disconnect();
-    navigate("/login");
   };
 
   const handleAccept = () => {
@@ -48,116 +44,72 @@ function StudentQueryPage() {
   const handleEnd = () => {
     endStudentCall();
     setInCall(false);
-    setIncomingCall(false); // hide buttons if desired
+    setIncomingCall(false); 
   };
 
   return (
-    <div style={{ minHeight: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
-      <div style={{ backgroundColor: "#fff", padding: "30px", borderRadius: "12px", width: "420px" }}>
-        <button
-          onClick={handleLogout}
-          style={{
-            marginBottom: "10px",
-            padding: "6px 12px",
-            backgroundColor: "#ef4444",
-            color: "#fff",
-            border: "none",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          Logout
-        </button>
-
-        <h2>Student Queries</h2>
+    <div className="query-page-container">
+      <div className="query-card">
+        <h2 style={{ marginBottom: '20px', color: 'var(--primary)' }}>Live Classroom Chat</h2>
 
         {incomingCall && (
-          <div style={{ marginBottom: "15px" }}>
+          <div style={{ display: 'flex', gap: '15px', marginBottom: "20px" }}>
             <button
               onClick={handleAccept}
               disabled={inCall}
-              style={{
-                width: "48%",
-                padding: "12px",
-                backgroundColor: "#2563eb",
-                color: "#fff",
-                border: "none",
-                borderRadius: "8px",
-                fontSize: "16px",
-                cursor: inCall ? "not-allowed" : "pointer",
-                marginRight: "4%",
-              }}
+              className="btn-primary"
+              style={{ backgroundColor: inCall ? '#9CA3AF' : 'var(--secondary)' }}
             >
-              Accept Video Call
+              {inCall ? 'Call Active' : 'Accept Video Call'}
             </button>
 
             <button
               onClick={handleEnd}
-              style={{
-                width: "48%",
-                padding: "12px",
-                backgroundColor: "#dc2626",
-                color: "#fff",
-                border: "none",
-                borderRadius: "8px",
-                fontSize: "16px",
-                cursor: "pointer",
-              }}
+              className="btn-primary"
+              style={{ backgroundColor: 'var(--danger)' }}
             >
               End Call
             </button>
           </div>
         )}
 
-        <div
-          style={{
-            height: "200px",
-            overflowY: "auto",
-            padding: "12px",
-            border: "1px solid #cbd5e1",
-            borderRadius: "8px",
-            marginBottom: "15px",
-            backgroundColor: "#f1f5f9",
-          }}
-        >
-          {messages.map((msg, i) => (
-            <p key={i}>
-              <b>{msg.sender}:</b> {msg.text}
-            </p>
-          ))}
-        </div>
+        <div className="chat-container">
+          <div className="chat-messages">
+            {messages.length === 0 && (
+              <p style={{ textAlign: 'center', color: 'var(--text-muted)', marginTop: '20px' }}>
+                No messages yet. Start the conversation!
+              </p>
+            )}
+            {messages.map((msg, i) => {
+              const isMe = msg.sender === "Student";
+              return (
+                <div key={i} className={`message ${isMe ? 'sent' : ''}`}>
+                  <div className="message-sender">{msg.sender}</div>
+                  <div className="message-bubble">{msg.text}</div>
+                </div>
+              );
+            })}
+          </div>
 
-        <form onSubmit={handleSubmit}>
-          <textarea
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Type your query..."
-            required
-            style={{
-              width: "100%",
-              height: "80px",
-              padding: "12px",
-              borderRadius: "8px",
-              border: "1px solid #cbd5e1",
-              fontSize: "15px",
-              marginBottom: "15px",
-            }}
-          />
-          <input
-            type="submit"
-            value="Send"
-            style={{
-              width: "100%",
-              padding: "12px",
-              backgroundColor: "#0f766e",
-              color: "#fff",
-              border: "none",
-              borderRadius: "8px",
-              fontSize: "16px",
-              cursor: "pointer",
-            }}
-          />
-        </form>
+          <form className="chat-input-area" onSubmit={handleSubmit}>
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Type your query..."
+              required
+              className="input-field"
+              style={{ borderRadius: '20px' }}
+            />
+            <button
+              type="submit"
+              className="btn-primary"
+              style={{ borderRadius: '20px' }}
+            >
+              Send
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   );

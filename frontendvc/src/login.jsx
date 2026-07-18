@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 function Login() {
   const [form, setForm] = useState({ username: "", password: "" });
@@ -54,63 +54,38 @@ function Login() {
     }
   };
 
-  const formContainerStyle = {
-    background: "white",
-    padding: "30px",
-    borderRadius: "12px",
-    boxShadow: "0 8px 24px rgba(0,0,0,0.1)",
-    width: "100%",
-    maxWidth: "400px",
-    margin: "0 auto"
-  };
-
-  const inputStyle = {
-    width: "100%",
-    padding: "12px",
-    margin: "10px 0",
-    borderRadius: "6px",
-    border: "1px solid #ddd"
-  };
-
-  const buttonStyle = {
-    width: "100%",
-    padding: "12px",
-    backgroundColor: "#4a90e2",
-    color: "white",
-    border: "none",
-    borderRadius: "6px",
-    cursor: "pointer",
-    fontWeight: "bold",
-    marginTop: "10px"
-  };
-
   return (
-    <div style={formContainerStyle}>
-      <form onSubmit={handleSubmit}>
-        <h2 style={{ marginBottom: "20px" }}>Login</h2>
+    <div className="auth-container">
+      <div className="auth-card">
+        <form onSubmit={handleSubmit}>
+          <h2>Login</h2>
 
-        <input
-          type="text"
-          name="username"
-          placeholder="Username"
-          style={inputStyle}
-          value={form.username}
-          onChange={handleChange}
-          required
-        />
+          <input
+            type="text"
+            name="username"
+            placeholder="Username"
+            className="input-field"
+            value={form.username}
+            onChange={handleChange}
+            required
+          />
 
-        <input
-          type="password"
-          name="password"
-          placeholder="Password"
-          style={inputStyle}
-          value={form.password}
-          onChange={handleChange}
-          required
-        />
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            className="input-field"
+            value={form.password}
+            onChange={handleChange}
+            required
+          />
 
-        <input type="submit" style={buttonStyle} value="Login" />
-      </form>
+          <button type="submit" className="btn-primary">Login</button>
+        </form>
+        <p style={{ marginTop: '20px', color: 'var(--text-muted)' }}>
+          Don't have an account? <Link to="/signup" style={{ color: 'var(--primary)' }}>Sign up here</Link>
+        </p>
+      </div>
     </div>
   );
 }

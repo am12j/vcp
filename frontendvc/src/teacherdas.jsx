@@ -23,89 +23,50 @@ const TeacherDashboard = () => {
       });
 
       const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Failed to start class");
+        return;
+      }
       
       localStorage.setItem("teachertoken", data.token2);
         
       navigate("/teacherQuery");
-     
+      
     } catch (err) {
       console.error(err);
-      setError("Something went wrong");
+      setError("Something went wrong. Try again.");
     }
 
     setFormData({ classId: "" });
   };
 
   return (
-    <div style={containerStyle}>
-      <h2 style={headingStyle}>Teachers Dashboard</h2>
+    <div className="dashboard-container">
+      <div className="dashboard-card">
+        <h2>Teacher Dashboard</h2>
+        <p style={{ marginBottom: "24px", color: "var(--text-muted)" }}>
+          Start a new virtual classroom session by providing a unique Class ID.
+        </p>
 
-      <form onSubmit={handleSubmit} style={formStyle}>
-        <input
-          type="text"
-          name="classId"
-          value={formData.classId}
-          onChange={handleChange}
-          placeholder="Enter Class ID"
-          required
-          style={inputStyle}
-        />
+        <form onSubmit={handleSubmit}>
+          <input
+            type="text"
+            name="classId"
+            value={formData.classId}
+            onChange={handleChange}
+            placeholder="Create Class ID (e.g. MATH101)"
+            required
+            className="input-field"
+          />
 
-        <input type="submit" value="Create Class" style={buttonStyle} />
-      </form>
+          <button type="submit" className="btn-primary" style={{ backgroundColor: 'var(--secondary)' }}>Start Class</button>
+        </form>
 
-      {error && <p style={errorStyle}>{error}</p>}
+        {error && <p className="error-msg">{error}</p>}
+      </div>
     </div>
   );
-};
-
-/* ---------- CSS styles ---------- */
-
-const containerStyle = {
-  minHeight: "100vh",
-  display: "flex",
-  flexDirection: "column",
-  justifyContent: "center",
-  alignItems: "center",
-  backgroundColor: "#eef2f7",
-};
-
-const headingStyle = {
-  marginBottom: "20px",
-  color: "#1f2933",
-};
-
-const formStyle = {
-  backgroundColor: "#ffffff",
-  padding: "30px",
-  borderRadius: "10px",
-  boxShadow: "0 6px 15px rgba(0, 0, 0, 0.15)",
-  display: "flex",
-  flexDirection: "column",
-  width: "320px",
-};
-
-const inputStyle = {
-  padding: "12px",
-  marginBottom: "15px",
-  borderRadius: "6px",
-  border: "1px solid #cbd5e1",
-  fontSize: "16px",
-};
-
-const buttonStyle = {
-  padding: "12px",
-  backgroundColor: "#0f766e",
-  color: "#ffffff",
-  border: "none",
-  borderRadius: "6px",
-  fontSize: "16px",
-  cursor: "pointer",
-};
-
-const errorStyle = {
-  marginTop: "15px",
-  color: "red",
 };
 
 export default TeacherDashboard;
