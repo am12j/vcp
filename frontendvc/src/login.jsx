@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
 function Login() {
-  const [form, setForm] = useState({ username: "", password: "" });
+  const [form, setForm] = useState({ name: "", username: "", password: "" });
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -33,17 +33,17 @@ function Login() {
       if (role === "student") {
         localStorage.setItem("stoken", data.token1);
         localStorage.setItem("user", data.username1);
-        localStorage.setItem("name", data.name1);
+        localStorage.setItem("name", form.name);
 
-        setForm({ username: "", password: "" }); // <-- clear inputs
+        setForm({ name: "", username: "", password: "" }); // <-- clear inputs
         navigate("/studentdas", { replace: true });
       } 
       else if (role === "teacher") {
         localStorage.setItem("ttoken", data.token1);
         localStorage.setItem("user", data.username1);
-        localStorage.setItem("name", data.name1);
+        localStorage.setItem("name", form.name);
 
-        setForm({ username: "", password: "" }); // <-- clear inputs
+        setForm({ name: "", username: "", password: "" }); // <-- clear inputs
         navigate("/teacherdas", { replace: true });
       } 
       else {
@@ -61,6 +61,16 @@ function Login() {
       <div className="auth-card">
         <form onSubmit={handleSubmit}>
           <h2>Login</h2>
+
+          <input
+            type="text"
+            name="name"
+            placeholder="Your Display Name"
+            className="input-field"
+            value={form.name}
+            onChange={handleChange}
+            required
+          />
 
           <input
             type="text"
