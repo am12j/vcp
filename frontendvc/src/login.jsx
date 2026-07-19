@@ -89,6 +89,8 @@ function Login() {
             className="input-field"
             value={form.password}
             onChange={handleChange}
+            pattern="^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$"
+            title="Password must be at least 8 characters long, contain at least one letter, one number, and one special character."
             required
           />
 
