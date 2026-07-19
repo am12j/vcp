@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 const TeacherDashboard = () => {
   const [formData, setFormData] = useState({ classId: "" });
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -12,6 +13,8 @@ const TeacherDashboard = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
     try {
       const response = await fetch("https://vcp-rs8t.onrender.com/create-class", {
@@ -26,6 +29,7 @@ const TeacherDashboard = () => {
 
       if (!response.ok) {
         setError(data.message || "Failed to start class");
+        setIsLoading(false);
         return;
       }
       
@@ -36,9 +40,10 @@ const TeacherDashboard = () => {
     } catch (err) {
       console.error(err);
       setError("Something went wrong. Try again.");
+    } finally {
+      setIsLoading(false);
+      setFormData({ classId: "" });
     }
-
-    setFormData({ classId: "" });
   };
 
   return (
@@ -60,7 +65,9 @@ const TeacherDashboard = () => {
             className="input-field"
           />
 
-          <button type="submit" className="btn-primary" style={{ backgroundColor: 'var(--secondary)' }}>Start Class</button>
+          <button type="submit" className="btn-primary" style={{ backgroundColor: 'var(--secondary)' }} disabled={isLoading}>
+            {isLoading ? "Starting..." : "Start Class"}
+          </button>
         </form>
 
         {error && <p className="error-msg">{error}</p>}

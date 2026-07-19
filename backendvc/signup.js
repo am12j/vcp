@@ -40,9 +40,20 @@ io.on("connection", (socket) => {
   });
 
 
+  /* -------- TEACHER READY -------- */
+  socket.on("teacher-ready", () => {
+    socket.broadcast.emit("teacher-ready", { teacherId: socket.id });
+  });
+
+  /* -------- STUDENT JOINED -------- */
+  socket.on("student-joined", (data) => {
+    // Tell the teacher that a student wants to connect
+    io.to(data.target).emit("student-joined", { studentId: socket.id });
+  });
+
   /* -------- OFFER -------- */
   socket.on("offer", (data) => {
-    socket.broadcast.emit("offer", {
+    io.to(data.target).emit("offer", {
       teacherId: socket.id,
       offer: data.offer,
     });

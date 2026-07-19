@@ -1,61 +1,31 @@
-import { io } from "socket.io-client";
-
-const socket = io("https://vcp-rs8t.onrender.com");
-
 let pc = null;
 let localStream = null;
-let teacherId = null;
 
-/* ---------------- START STUDENT CALL ---------------- */
+export const startStudentCall = async (socket, teacherId, onLocalStream, onRemoteStream) => {
+  try {
+    localStream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true,
+    });
+    
+    // Pass local stream to React UI
+    onLocalStream(localStream);
 
-export const startStudentCall = () => {
-  // Listen for teacher offer
-  socket.on("offer", async ({ offer, teacherId: tId }) => {
-    try {
-      teacherId = tId; // IMPORTANT
+    // Set up listeners BEFORE emitting join, so we don't miss the offer!
+    socket.on("offer", async (data) => {
+      // Validate it's from the actual teacher
+      if (data.teacherId !== teacherId) return;
 
-      // 1️⃣ Get camera + mic
-      localStream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
-
-      // 2️⃣ Show student video
-      if (!document.getElementById("local-video")) {
-        const localVideo = document.createElement("video");
-        localVideo.id = "local-video";
-        localVideo.srcObject = localStream;
-        localVideo.autoplay = true;
-        localVideo.muted = true;
-        localVideo.style.width = "400px";
-        document.body.appendChild(localVideo);
-      }
-
-      // 3️⃣ Create peer connection
       pc = new RTCPeerConnection({
         iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
       });
 
-      // 4️⃣ Add tracks
       localStream.getTracks().forEach((track) => {
         pc.addTrack(track, localStream);
       });
 
-      // 5️⃣ Receive teacher video
-      pc.ontrack = (event) => {
-        if (!document.getElementById("remote-video")) {
-          const remoteVideo = document.createElement("video");
-          remoteVideo.id = "remote-video";
-          remoteVideo.srcObject = event.streams[0];
-          remoteVideo.autoplay = true;
-          remoteVideo.style.width = "400px";
-          document.body.appendChild(remoteVideo);
-        }
-      };
-
-      // 6️⃣ Send ICE to teacher
       pc.onicecandidate = (event) => {
-        if (event.candidate && teacherId) {
+        if (event.candidate) {
           socket.emit("ice-candidate", {
             target: teacherId,
             candidate: event.candidate,
@@ -63,61 +33,44 @@ export const startStudentCall = () => {
         }
       };
 
-      // 7️⃣ Set remote description (teacher offer)
-      await pc.setRemoteDescription(
-        new RTCSessionDescription(offer)
-      );
+      pc.ontrack = (event) => {
+        onRemoteStream(event.streams[0]);
+      };
 
-      // 8️⃣ Create answer
+      await pc.setRemoteDescription(new RTCSessionDescription(data.offer));
       const answer = await pc.createAnswer();
       await pc.setLocalDescription(answer);
 
-      // 9️⃣ Send answer back to teacher
-      socket.emit("answer", {
-        target: teacherId,
-        answer: answer,
-      });
-
+      socket.emit("answer", { target: teacherId, answer });
       console.log("📞 Student answered the call");
+    });
 
-    } catch (err) {
-      console.error("❌ Student call error:", err);
-    }
-  });
-
-  /* ---------------- RECEIVE ICE ---------------- */
-
-  socket.on("ice-candidate", async ({ senderId, candidate }) => {
-    if (pc && senderId === teacherId) {
-      try {
-        await pc.addIceCandidate(
-          new RTCIceCandidate(candidate)
-        );
-      } catch (err) {
-        console.error("❌ Error adding ICE:", err);
+    socket.on("ice-candidate", async (data) => {
+      if (pc && data.senderId === teacherId) {
+        await pc.addIceCandidate(new RTCIceCandidate(data.candidate));
       }
-    }
-  });
+    });
+
+    // Tell the teacher we are ready to receive an offer
+    socket.emit("student-joined", { target: teacherId });
+
+  } catch (err) {
+    console.error("Student call error:", err);
+  }
 };
 
-/* ---------------- END CALL ---------------- */
-
-export const endStudentCall = () => {
+export const endStudentCall = (socket) => {
   if (localStream) {
-    localStream.getTracks().forEach((track) => track.stop());
+    localStream.getTracks().forEach(track => track.stop());
     localStream = null;
   }
-
   if (pc) {
     pc.close();
     pc = null;
   }
-
-  teacherId = null;
-
-  document.querySelectorAll("video").forEach((v) => v.remove());
-
-  socket.emit("end-call");
-
+  
+  socket.off("offer");
+  socket.off("ice-candidate");
+  
   console.log("🛑 Student call ended");
 };

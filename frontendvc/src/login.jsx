@@ -3,6 +3,7 @@ import { useNavigate, Link } from "react-router-dom";
 
 function Login() {
   const [form, setForm] = useState({ name: "", username: "", password: "" });
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -11,6 +12,7 @@ function Login() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
 
     try {
       const response = await fetch("https://vcp-rs8t.onrender.com/login", {
@@ -23,6 +25,7 @@ function Login() {
 
       if (!response.ok) {
         alert(data.message || "Login failed");
+        setIsLoading(false);
         return;
       }
 
@@ -52,7 +55,9 @@ function Login() {
 
     } catch (err) {
       console.error("Login Error:", err);
-      alert("Server is not responding");
+      alert("Server is not responding. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -94,7 +99,9 @@ function Login() {
             required
           />
 
-          <button type="submit" className="btn-primary">Login</button>
+          <button type="submit" className="btn-primary" disabled={isLoading}>
+            {isLoading ? "Logging in..." : "Login"}
+          </button>
         </form>
         <p style={{ marginTop: '20px', color: 'var(--text-muted)' }}>
           Don't have an account? <Link to="/signup" style={{ color: 'var(--primary)' }}>Sign up here</Link>

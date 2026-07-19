@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 const StudentDashboard = () => {
   const [formData, setFormData] = useState({ classId: "" });
   const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -12,6 +13,8 @@ const StudentDashboard = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setIsLoading(true);
+    setError("");
 
     try {
       const response = await fetch("https://vcp-rs8t.onrender.com/verify-class", {
@@ -26,6 +29,7 @@ const StudentDashboard = () => {
 
       if (!response.ok) {
         setError(data.message || "Invalid Class ID");
+        setIsLoading(false);
         return;
       }
       
@@ -36,9 +40,10 @@ const StudentDashboard = () => {
     } catch (err) {
       console.error(err);
       setError("Something went wrong. Try again.");
+    } finally {
+      setIsLoading(false);
+      setFormData({ classId: "" });
     }
-
-    setFormData({ classId: "" });
   };
 
   return (
@@ -60,7 +65,9 @@ const StudentDashboard = () => {
             className="input-field"
           />
 
-          <button type="submit" className="btn-primary">Join Class</button>
+          <button type="submit" className="btn-primary" disabled={isLoading}>
+            {isLoading ? "Joining..." : "Join Class"}
+          </button>
         </form>
 
         {error && <p className="error-msg">{error}</p>}

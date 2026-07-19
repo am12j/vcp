@@ -1,9 +1,32 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
 import { startStudentCall, endStudentCall } from "./studentcall"; 
 
 const socket = io("https://vcp-rs8t.onrender.com");
+
+const VideoPlayer = ({ stream, isLocal }) => {
+  const videoRef = useRef(null);
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
+  return (
+    <video
+      ref={videoRef}
+      autoPlay
+      playsInline
+      muted={isLocal}
+      style={{
+        width: "100%",
+        borderRadius: "8px",
+        backgroundColor: "#000",
+        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+      }}
+    />
+  );
+};
 
 function StudentQueryPage() {
   const [query, setQuery] = useState("");
@@ -11,6 +34,9 @@ function StudentQueryPage() {
   const [messages, setMessages] = useState([]);
   const [incomingCall, setIncomingCall] = useState(false); 
   const [inCall, setInCall] = useState(false); 
+  const [teacherId, setTeacherId] = useState(null);
+  const [localStream, setLocalStream] = useState(null);
+  const [remoteStream, setRemoteStream] = useState(null);
 
 
   useEffect(() => {
@@ -18,13 +44,14 @@ function StudentQueryPage() {
       setMessages((prev) => [...prev, data])
     );
 
-    socket.on("offer", () => {
+    socket.on("teacher-ready", (data) => {
+      setTeacherId(data.teacherId);
       setIncomingCall(true); 
     });
 
     return () => {
       socket.off("receiveMessage");
-      socket.off("offer");
+      socket.off("teacher-ready");
     };
   }, []);
 
@@ -38,14 +65,22 @@ function StudentQueryPage() {
   };
 
   const handleAccept = () => {
-    startStudentCall();
+    if (!teacherId) return;
+    startStudentCall(
+      socket,
+      teacherId,
+      (stream) => setLocalStream(stream),
+      (stream) => setRemoteStream(stream)
+    );
     setInCall(true);
+    setIncomingCall(false); // Hide the accept button
   };
 
   const handleEnd = () => {
-    endStudentCall();
+    endStudentCall(socket);
+    setLocalStream(null);
+    setRemoteStream(null);
     setInCall(false);
-    setIncomingCall(false); 
   };
 
   return (
@@ -53,24 +88,44 @@ function StudentQueryPage() {
       <div className="query-card">
         <h2 style={{ marginBottom: '20px', color: 'var(--primary)' }}>Live Classroom Chat</h2>
 
-        {incomingCall && (
+        {incomingCall && !inCall && (
           <div style={{ display: 'flex', gap: '15px', marginBottom: "20px" }}>
             <button
               onClick={handleAccept}
-              disabled={inCall}
               className="btn-primary"
-              style={{ backgroundColor: inCall ? '#9CA3AF' : 'var(--secondary)' }}
+              style={{ backgroundColor: 'var(--secondary)' }}
             >
-              {inCall ? 'Call Active' : 'Accept Video Call'}
+              Join Video Class
             </button>
+          </div>
+        )}
 
+        {inCall && (
+          <div style={{ display: 'flex', gap: '15px', marginBottom: "20px" }}>
             <button
               onClick={handleEnd}
               className="btn-primary"
               style={{ backgroundColor: 'var(--danger)' }}
             >
-              End Call
+              Leave Class
             </button>
+          </div>
+        )}
+
+        {inCall && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px', marginBottom: '20px' }}>
+            {localStream && (
+              <div>
+                <h4 style={{marginBottom: '5px', fontSize: '14px', color: 'var(--text-color)'}}>You (Student)</h4>
+                <VideoPlayer stream={localStream} isLocal={true} />
+              </div>
+            )}
+            {remoteStream && (
+              <div>
+                <h4 style={{marginBottom: '5px', fontSize: '14px', color: 'var(--text-color)'}}>Teacher</h4>
+                <VideoPlayer stream={remoteStream} isLocal={false} />
+              </div>
+            )}
           </div>
         )}
 

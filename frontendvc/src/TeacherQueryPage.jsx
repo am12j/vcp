@@ -1,16 +1,40 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 
 import { startTeacherCall, endTeacherCall } from "./teachercall"; 
 
 const socket = io("https://vcp-rs8t.onrender.com");
 
+const VideoPlayer = ({ stream, isLocal }) => {
+  const videoRef = useRef(null);
+  useEffect(() => {
+    if (videoRef.current && stream) {
+      videoRef.current.srcObject = stream;
+    }
+  }, [stream]);
+  return (
+    <video
+      ref={videoRef}
+      autoPlay
+      playsInline
+      muted={isLocal}
+      style={{
+        width: "100%",
+        borderRadius: "8px",
+        backgroundColor: "#000",
+        boxShadow: "0 4px 6px rgba(0,0,0,0.1)",
+      }}
+    />
+  );
+};
+
 function TeacherQueryPage() {
   const [formData, setFormData] = useState({ query: "" });
   const userName = localStorage.getItem("name") || "Teacher";
   const [messages, setMessages] = useState([]);
   const [callActive, setCallActive] = useState(false); 
-
+  const [localStream, setLocalStream] = useState(null);
+  const [remoteStreams, setRemoteStreams] = useState({});
 
   useEffect(() => {
     socket.on("receiveMessage", (data) => {
@@ -36,12 +60,18 @@ function TeacherQueryPage() {
   };
 
   const handleStartCall = () => {
-    startTeacherCall(); 
+    startTeacherCall(
+      socket,
+      (stream) => setLocalStream(stream),
+      (studentId, stream) => setRemoteStreams((prev) => ({ ...prev, [studentId]: stream }))
+    ); 
     setCallActive(true); 
   };
 
   const handleEndCall = () => {
-    endTeacherCall(); 
+    endTeacherCall(socket); 
+    setLocalStream(null);
+    setRemoteStreams({});
     setCallActive(false); 
   };
 
@@ -61,6 +91,23 @@ function TeacherQueryPage() {
             </button>
           )}
         </div>
+
+        {callActive && (
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px', marginBottom: '20px' }}>
+            {localStream && (
+              <div>
+                <h4 style={{marginBottom: '5px', fontSize: '14px', color: 'var(--text-color)'}}>You (Teacher)</h4>
+                <VideoPlayer stream={localStream} isLocal={true} />
+              </div>
+            )}
+            {Object.entries(remoteStreams).map(([studentId, stream]) => (
+              <div key={studentId}>
+                <h4 style={{marginBottom: '5px', fontSize: '14px', color: 'var(--text-color)'}}>Student</h4>
+                <VideoPlayer stream={stream} isLocal={false} />
+              </div>
+            ))}
+          </div>
+        )}
 
         <div className="chat-container">
           <div className="chat-messages">
