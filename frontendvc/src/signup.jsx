@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 
 function Signup() {
-  const [form, setForm] = useState({ username: "", password: "" });
+  const [form, setForm] = useState({ name: "", username: "", password: "" });
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -40,6 +40,16 @@ function Signup() {
       <div className="auth-card">
         <form onSubmit={handleSubmit}>
           <h2>Signup</h2>
+
+          <input
+            type="text"
+            name="name"
+            placeholder="Full Name"
+            className="input-field"
+            value={form.name}
+            onChange={handleChange}
+            required
+          />
 
           <input
             type="text"

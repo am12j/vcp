@@ -88,6 +88,7 @@ app.post("/login", async (req, res) => {
     res.json({
       token1: token,
       username1: user.username,
+      name1: user.name || user.username, // Fallback to username if name is missing
     });
   } catch (err) {
     res.status(500).json({ message: "Server error" });
@@ -95,12 +96,13 @@ app.post("/login", async (req, res) => {
 });
 
 app.post("/signup", async (req, res) => {
-  const { username, password, email } = req.body;
+  const { name, username, password, email } = req.body;
 
   try {
     const db = client.db("mernpro");
 
     await db.collection("signupdata").insertOne({
+      name: name ? name.trim() : "",
       username: username.trim(),
       password: password.trim(),
       email,

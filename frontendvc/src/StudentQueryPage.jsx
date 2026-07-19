@@ -7,6 +7,7 @@ const socket = io("https://vcp-rs8t.onrender.com");
 
 function StudentQueryPage() {
   const [query, setQuery] = useState("");
+  const userName = localStorage.getItem("name") || "Student";
   const [messages, setMessages] = useState([]);
   const [incomingCall, setIncomingCall] = useState(false); 
   const [inCall, setInCall] = useState(false); 
@@ -30,7 +31,7 @@ function StudentQueryPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!query.trim()) return;
-    const messageData = { sender: "Student", text: query };
+    const messageData = { sender: userName, text: query };
     socket.emit("sendMessage", messageData);
     setMessages((prev) => [...prev, messageData]);
     setQuery("");
@@ -81,7 +82,7 @@ function StudentQueryPage() {
               </p>
             )}
             {messages.map((msg, i) => {
-              const isMe = msg.sender === "Student";
+              const isMe = msg.sender === userName;
               return (
                 <div key={i} className={`message ${isMe ? 'sent' : ''}`}>
                   <div className="message-sender">{msg.sender}</div>

@@ -33,6 +33,7 @@ function Login() {
       if (role === "student") {
         localStorage.setItem("stoken", data.token1);
         localStorage.setItem("user", data.username1);
+        localStorage.setItem("name", data.name1);
 
         setForm({ username: "", password: "" }); // <-- clear inputs
         navigate("/studentdas", { replace: true });
@@ -40,6 +41,7 @@ function Login() {
       else if (role === "teacher") {
         localStorage.setItem("ttoken", data.token1);
         localStorage.setItem("user", data.username1);
+        localStorage.setItem("name", data.name1);
 
         setForm({ username: "", password: "" }); // <-- clear inputs
         navigate("/teacherdas", { replace: true });
