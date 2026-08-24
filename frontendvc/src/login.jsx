@@ -4,6 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 function Login() {
   const [form, setForm] = useState({ name: "", username: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
+  const [statusMsg, setStatusMsg] = useState("");
   const navigate = useNavigate();
 
   const handleChange = (e) => {
@@ -13,6 +14,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
+    setStatusMsg("Logging in (connecting to server)...");
 
     try {
       const response = await fetch("https://vcp-rs8t.onrender.com/login", {
@@ -26,40 +28,36 @@ function Login() {
       if (!response.ok) {
         alert(data.message || "Login failed");
         setIsLoading(false);
+        setStatusMsg("");
         return;
       }
 
-      // role is "student" or "teacher"
-      const role = data.username1.trim().toLowerCase();
-      console.log("ROLE:", role);
+      // Check role - if username contains teacher, it's teacher; otherwise student
+      const userStr = (data.username1 || form.username).trim().toLowerCase();
+      const isTeacher = userStr.includes("teacher");
 
-      // Clear any previous token
+      // Clear any previous session tokens
       localStorage.removeItem("stoken");
       localStorage.removeItem("ttoken");
+      localStorage.removeItem("studenttoken");
+      localStorage.removeItem("teachertoken");
 
-      if (role === "student" || role.startsWith("student")) {
-        // Set only 1 localStorage for student
-        localStorage.setItem("stoken", data.token1);
-
-        setForm({ name: "", username: "", password: "" });
-        navigate("/studentdas", { replace: true });
-      } 
-      else if (role === "teacher" || role.startsWith("teacher")) {
-        // Set only 1 localStorage for teacher
+      if (isTeacher) {
         localStorage.setItem("ttoken", data.token1);
-
         setForm({ name: "", username: "", password: "" });
         navigate("/teacherdas", { replace: true });
-      } 
-      else {
-        alert("Invalid role in database. Username must be student or teacher");
+      } else {
+        localStorage.setItem("stoken", data.token1);
+        setForm({ name: "", username: "", password: "" });
+        navigate("/studentdas", { replace: true });
       }
 
     } catch (err) {
       console.error("Login Error:", err);
-      alert("Server is not responding. Please try again.");
+      alert("Server is waking up or not responding. Please try again in a few seconds.");
     } finally {
       setIsLoading(false);
+      setStatusMsg("");
     }
   };
 
@@ -96,10 +94,14 @@ function Login() {
             className="input-field"
             value={form.password}
             onChange={handleChange}
-            pattern="^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*#?&])[A-Za-z\d@$!%*#?&]{8,}$"
-            title="Password must be at least 8 characters long, contain at least one letter, one number, and one special character."
             required
           />
+
+          {statusMsg && (
+            <p style={{ color: "var(--primary)", fontSize: "0.85rem", marginBottom: "15px", fontWeight: "500" }}>
+              {statusMsg}
+            </p>
+          )}
 
           <button type="submit" className="btn-primary" disabled={isLoading}>
             {isLoading ? "Logging in..." : "Login"}

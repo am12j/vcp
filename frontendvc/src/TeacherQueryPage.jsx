@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 
 import { startTeacherCall, endTeacherCall } from "./teachercall"; 
@@ -29,6 +30,7 @@ const VideoPlayer = ({ stream, isLocal }) => {
 };
 
 function TeacherQueryPage() {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({ query: "" });
   const userName = "Teacher";
   const [messages, setMessages] = useState([]);
@@ -37,11 +39,17 @@ function TeacherQueryPage() {
   const [remoteStreams, setRemoteStreams] = useState({});
 
   useEffect(() => {
+    const token = localStorage.getItem("teachertoken") || localStorage.getItem("ttoken");
+    if (!token) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
     socket.on("receiveMessage", (data) => {
       setMessages((prev) => [...prev, data]);
     });
     return () => socket.off("receiveMessage");
-  }, []);
+  }, [navigate]);
 
   const handleChange = (e) => {
     setFormData({

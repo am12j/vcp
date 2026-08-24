@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { io } from "socket.io-client";
 
 import { startStudentCall, endStudentCall } from "./studentcall"; 
@@ -29,6 +30,7 @@ const VideoPlayer = ({ stream, isLocal }) => {
 };
 
 function StudentQueryPage() {
+  const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const userName = "Student";
   const [messages, setMessages] = useState([]);
@@ -39,6 +41,12 @@ function StudentQueryPage() {
   const [remoteStream, setRemoteStream] = useState(null);
 
   useEffect(() => {
+    const token = localStorage.getItem("studenttoken") || localStorage.getItem("stoken");
+    if (!token) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
     socket.on("receiveMessage", (data) =>
       setMessages((prev) => [...prev, data])
     );
@@ -52,7 +60,7 @@ function StudentQueryPage() {
       socket.off("receiveMessage");
       socket.off("teacher-ready");
     };
-  }, []);
+  }, [navigate]);
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -72,7 +80,7 @@ function StudentQueryPage() {
       (stream) => setRemoteStream(stream)
     );
     setInCall(true);
-    setIncomingCall(false); // Hide the accept button
+    setIncomingCall(false);
   };
 
   const handleEnd = () => {

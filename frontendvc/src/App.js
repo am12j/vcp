@@ -22,56 +22,40 @@ function App() {
           <Route
             path="/studentdas"
             element={
-              localStorage.getItem("stoken") ? (
-                <>
-                  <Navbar />
-                  <StudentDashboard />
-                </>
-              ) : (
-                <Navigate to="/login" />
-              )
+              <>
+                <Navbar />
+                <StudentDashboard />
+              </>
             }
           />
 
           <Route
             path="/teacherdas"
             element={
-              localStorage.getItem("ttoken") ? (
-                <>
-                  <Navbar />
-                  <TeacherDashboard />
-                </>
-              ) : (
-                <Navigate to="/login" />
-              )
+              <>
+                <Navbar />
+                <TeacherDashboard />
+              </>
             }
           />
 
           <Route 
             path="/teacherQuery" 
             element={
-              localStorage.getItem("teachertoken") ? (
-                <>
-                  <Navbar />
-                  <TeacherQueryPage/>
-                </>
-              ) : (
-                <Navigate to="/login" />
-              )
+              <>
+                <Navbar />
+                <TeacherQueryPage />
+              </>
             }
           />
 
           <Route 
             path="/student-query" 
             element={
-              localStorage.getItem("studenttoken") ? (
-                <>
-                  <Navbar />
-                  <StudentQueryPage/>
-                </>
-              ) : (
-                <Navigate to="/login"/>
-              )
+              <>
+                <Navbar />
+                <StudentQueryPage />
+              </>
             }
           />
 

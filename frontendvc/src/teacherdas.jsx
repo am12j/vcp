@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
 const TeacherDashboard = () => {
@@ -7,8 +7,16 @@ const TeacherDashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const token = localStorage.getItem("ttoken");
+    if (!token) {
+      navigate("/login", { replace: true });
+    }
+  }, [navigate]);
+
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError("");
   };
 
   const handleSubmit = async (e) => {
@@ -22,24 +30,23 @@ const TeacherDashboard = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ classId: formData.classId }),
+        body: JSON.stringify({ classId: formData.classId.trim() }),
       });
 
       const data = await response.json();
 
-      if (!response.ok) {
+      if (!response.ok || data.status === "failed") {
         setError(data.message || "Failed to start class");
         setIsLoading(false);
         return;
       }
       
       localStorage.setItem("teachertoken", data.token2);
-        
       navigate("/teacherQuery");
       
     } catch (err) {
       console.error(err);
-      setError("Something went wrong. Try again.");
+      setError("Something went wrong connecting to server. Try again.");
     } finally {
       setIsLoading(false);
       setFormData({ classId: "" });
