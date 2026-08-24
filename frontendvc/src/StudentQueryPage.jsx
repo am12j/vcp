@@ -30,14 +30,13 @@ const VideoPlayer = ({ stream, isLocal }) => {
 
 function StudentQueryPage() {
   const [query, setQuery] = useState("");
-  const userName = localStorage.getItem("name") || "Student";
+  const userName = "Student";
   const [messages, setMessages] = useState([]);
   const [incomingCall, setIncomingCall] = useState(false); 
   const [inCall, setInCall] = useState(false); 
   const [teacherId, setTeacherId] = useState(null);
   const [localStream, setLocalStream] = useState(null);
   const [remoteStream, setRemoteStream] = useState(null);
-
 
   useEffect(() => {
     socket.on("receiveMessage", (data) =>

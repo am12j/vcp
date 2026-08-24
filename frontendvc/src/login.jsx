@@ -29,28 +29,30 @@ function Login() {
         return;
       }
 
-      // role is ONLY "student" or "teacher"
+      // role is "student" or "teacher"
       const role = data.username1.trim().toLowerCase();
       console.log("ROLE:", role);
 
-      if (role === "student") {
-        localStorage.setItem("stoken", data.token1);
-        localStorage.setItem("user", data.username1);
-        localStorage.setItem("name", form.name);
+      // Clear any previous token
+      localStorage.removeItem("stoken");
+      localStorage.removeItem("ttoken");
 
-        setForm({ name: "", username: "", password: "" }); // <-- clear inputs
+      if (role === "student" || role.startsWith("student")) {
+        // Set only 1 localStorage for student
+        localStorage.setItem("stoken", data.token1);
+
+        setForm({ name: "", username: "", password: "" });
         navigate("/studentdas", { replace: true });
       } 
-      else if (role === "teacher") {
+      else if (role === "teacher" || role.startsWith("teacher")) {
+        // Set only 1 localStorage for teacher
         localStorage.setItem("ttoken", data.token1);
-        localStorage.setItem("user", data.username1);
-        localStorage.setItem("name", form.name);
 
-        setForm({ name: "", username: "", password: "" }); // <-- clear inputs
+        setForm({ name: "", username: "", password: "" });
         navigate("/teacherdas", { replace: true });
       } 
       else {
-        alert("Invalid role in database");
+        alert("Invalid role in database. Username must be student or teacher");
       }
 
     } catch (err) {
@@ -80,7 +82,7 @@ function Login() {
           <input
             type="text"
             name="username"
-            placeholder="Username"
+            placeholder="Username (e.g. student or teacher)"
             className="input-field"
             value={form.username}
             onChange={handleChange}

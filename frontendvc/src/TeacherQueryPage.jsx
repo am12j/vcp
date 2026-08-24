@@ -30,7 +30,7 @@ const VideoPlayer = ({ stream, isLocal }) => {
 
 function TeacherQueryPage() {
   const [formData, setFormData] = useState({ query: "" });
-  const userName = localStorage.getItem("name") || "Teacher";
+  const userName = "Teacher";
   const [messages, setMessages] = useState([]);
   const [callActive, setCallActive] = useState(false); 
   const [localStream, setLocalStream] = useState(null);

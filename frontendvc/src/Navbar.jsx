@@ -3,14 +3,13 @@ import { useNavigate } from "react-router-dom";
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const user = localStorage.getItem("user");
+  const isTeacher = !!localStorage.getItem("ttoken") || !!localStorage.getItem("teachertoken");
 
   const handleLogout = () => {
     localStorage.removeItem("stoken");
     localStorage.removeItem("ttoken");
-    localStorage.removeItem("studenttoken");
     localStorage.removeItem("teachertoken");
-    localStorage.removeItem("user");
+    localStorage.removeItem("studenttoken");
     navigate("/login", { replace: true });
   };
 
@@ -18,7 +17,7 @@ const Navbar = () => {
     <div className="top-navbar">
       <div className="navbar-brand">VCP</div>
       <div className="navbar-user">
-        {user && <span>Welcome, <strong>{user}</strong></span>}
+        <span>Welcome, <strong>{isTeacher ? "Teacher" : "Student"}</strong></span>
         <button onClick={handleLogout} className="btn-logout">Logout</button>
       </div>
     </div>
