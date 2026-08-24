@@ -20,7 +20,10 @@ function Login() {
       const response = await fetch("https://vcp-rs8t.onrender.com/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(form),
+        body: JSON.stringify({
+          username: form.username.trim(),
+          password: form.password.trim(),
+        }),
       });
 
       const data = await response.json();
@@ -35,12 +38,17 @@ function Login() {
       // Check role - if username contains teacher, it's teacher; otherwise student
       const userStr = (data.username1 || form.username).trim().toLowerCase();
       const isTeacher = userStr.includes("teacher");
+      const displayName = form.name.trim() || data.name1 || data.username1 || form.username;
 
       // Clear any previous session tokens
       localStorage.removeItem("stoken");
       localStorage.removeItem("ttoken");
       localStorage.removeItem("studenttoken");
       localStorage.removeItem("teachertoken");
+      localStorage.removeItem("name");
+
+      // Save user's display name for chat and greeting
+      localStorage.setItem("name", displayName);
 
       if (isTeacher) {
         localStorage.setItem("ttoken", data.token1);
@@ -70,7 +78,7 @@ function Login() {
           <input
             type="text"
             name="name"
-            placeholder="Your Display Name"
+            placeholder="Your Display Name (e.g. John Doe)"
             className="input-field"
             value={form.name}
             onChange={handleChange}

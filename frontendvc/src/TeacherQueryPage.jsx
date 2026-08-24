@@ -32,7 +32,7 @@ const VideoPlayer = ({ stream, isLocal }) => {
 function TeacherQueryPage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ query: "" });
-  const userName = "Teacher";
+  const userName = localStorage.getItem("name") || "Teacher";
   const [messages, setMessages] = useState([]);
   const [callActive, setCallActive] = useState(false); 
   const [localStream, setLocalStream] = useState(null);
@@ -61,7 +61,7 @@ function TeacherQueryPage() {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!formData.query.trim()) return;
-    const messageData = { sender: userName, text: formData.query };
+    const messageData = { sender: userName, text: formData.query.trim() };
     socket.emit("sendMessage", messageData);
     setMessages((prev) => [...prev, messageData]);
     setFormData({ query: "" });
@@ -104,7 +104,7 @@ function TeacherQueryPage() {
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '15px', marginBottom: '20px' }}>
             {localStream && (
               <div>
-                <h4 style={{marginBottom: '5px', fontSize: '14px', color: 'var(--text-color)'}}>You (Teacher)</h4>
+                <h4 style={{marginBottom: '5px', fontSize: '14px', color: 'var(--text-color)'}}>You ({userName})</h4>
                 <VideoPlayer stream={localStream} isLocal={true} />
               </div>
             )}
